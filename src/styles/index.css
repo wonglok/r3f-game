@@ -1,0 +1,11 @@
+html,
+body,
+#root,
+.full {
+  width: 100%;
+  height: 100%;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

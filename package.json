@@ -1,0 +1,40 @@
+{
+  "name": "dance-gallery",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "src/index.js",
+  "dependencies": {
+    "@tweenjs/tween.js": "^18.6.0",
+    "autoprefixer": "^9.8.4",
+    "drei": "^0.0.60",
+    "localforage": "^1.7.4",
+    "postcss-cli": "^7.1.1",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "3.4.1",
+    "react-three-fiber": "4.2.10",
+    "requestidlecallback": "^0.3.0",
+    "tailwindcss": "^1.4.6",
+    "three": "^0.116.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build:style": "tailwind build src/styles/index.css -o src/styles/tailwind.css",
+    "dev": "npm run build:style && react-scripts start",
+    "o-start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "deploy-manual": "npm run build; npm run vercel;",
+    "vercel": "vercel --prod",
+    "deploy": "git add .; git commit -am \"git backup\"; git push -u origin master"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
