@@ -58,8 +58,8 @@ export class Character extends EventDispatcher {
         this.gltf = gltf
         this.setupCharEffect({ gltf })
         this.mixer = new Mixer({ loop, actor: gltf.scene })
-        await this.setupAnimationSystem({ mixer: this.mixer })
         this.setupCharSkeleton({ gltf })
+        await this.setupAnimationSystem({ mixer: this.mixer })
         this.o3d.add(gltf.scene)
       })
   }
@@ -177,14 +177,22 @@ export class Character extends EventDispatcher {
     };
 
     this.addEventListener('go-forward', (v) => {
-      moveForward = v
+      if (v.data) {
+        onKeyDown({ keyCode: 87 })
+      } else {
+        onKeyUp({ keyCode: 87 })
+      }
     })
     this.addEventListener('go-backward', (v) => {
-      moveBackward = v
+      if (v.data) {
+        onKeyDown({ keyCode: 83 })
+      } else {
+        onKeyUp({ keyCode: 83 })
+      }
     })
 
     this.addEventListener('go-left', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 65 })
       } else {
         onKeyUp({ keyCode: 65 })
@@ -192,7 +200,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('go-right', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 68 })
       } else {
         onKeyUp({ keyCode: 68 })
@@ -200,14 +208,14 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('turn-left', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 81 })
       } else {
         onKeyUp({ keyCode: 81 })
       }
     })
     this.addEventListener('turn-right', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 69 })
       } else {
         onKeyUp({ keyCode: 69 })
@@ -808,32 +816,23 @@ export class Character extends EventDispatcher {
       toggleFightMode()
     })
 
+    this.addEventListener('dance', () => {
+      this.dispatchEvent({ type: 'play-move', move: { displayName: 'Ymca Dance' }, cb: () => {} })
+    })
+
     this.addEventListener('play-move', async ({ move, cb = () => {} }) => {
       try {
-        this.$nextTick(() => {
-          let list = this.$refs[`item-${move._id}`]
-          if (list) {
-            let dom = list[0]
-            try {
-              dom.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' })
-            } catch (e) {
-            }
-          }
-        })
-
-        this.isTakingComplexAction = true
         let action = await this.getActionByDisplayName({ name: move.displayName, mixer })
-        await this.doMany({ idle, to: action, mixer, stopAll: true }).catch(() => {
-          this.isTakingComplexAction = false
-        })
-        this.isTakingComplexAction = false
+        mixer.stopAllAction()
+        action.crossFadeFrom(idle, 0.3, true)
+        action.play()
       } catch (e) {
         console.log(e)
       }
     })
 
     // this.viewCameraMode = 'face'
-    this.dispatchEvent('play-move', { move: { displayName: 'Warming Up' }, cb: () => {} })
+    // this.dispatchEvent('play-move', { move: { displayName: 'Warming Up' }, cb: () => {} })
 
     // let moveForward, moveLeft, moveRight, moveBackward = false
     var onKeyDown = async (event) => {
@@ -943,7 +942,7 @@ export class Character extends EventDispatcher {
     }
 
     this.addEventListener('go-forward', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 87 })
       } else {
         onKeyUp({ keyCode: 87 })
@@ -951,7 +950,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('go-backward', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 83 })
       } else {
         onKeyUp({ keyCode: 83 })
@@ -959,7 +958,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('go-left', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 65 })
       } else {
         onKeyUp({ keyCode: 65 })
@@ -967,7 +966,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('go-right', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 68 })
       } else {
         onKeyUp({ keyCode: 68 })
@@ -975,7 +974,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('turn-left', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 81 })
       } else {
         onKeyUp({ keyCode: 81 })
@@ -983,7 +982,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('turn-right', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 69 })
       } else {
         onKeyUp({ keyCode: 69 })
@@ -991,14 +990,14 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('key-r', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 82 })
       } else {
         onKeyUp({ keyCode: 82 })
       }
     })
     this.addEventListener('key-t', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 84 })
       } else {
         onKeyUp({ keyCode: 84 })
@@ -1006,7 +1005,7 @@ export class Character extends EventDispatcher {
     })
 
     this.addEventListener('key-x', (v) => {
-      if (v) {
+      if (v.data) {
         onKeyDown({ keyCode: 88 })
       } else {
         onKeyUp({ keyCode: 88 })

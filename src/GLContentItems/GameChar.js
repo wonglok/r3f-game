@@ -7,7 +7,7 @@ import { HTML as HTMLAttach } from 'drei'
 // import './styles.css'
 
 
-export default function ({ touch, ...props }) {
+export default function ({ bus, touch, ...props }) {
   // This reference will give us direct access to the mesh
   const grouper = useRef()
   let { gl, camera } = useThree()
@@ -27,8 +27,18 @@ export default function ({ touch, ...props }) {
     char.out.done.then(() => {
       setShow(true)
     })
+
+    bus.addEventListener('pass', ({ encap }) => {
+      // forward GUI
+      let { type, data } = encap
+      char.dispatchEvent({
+        type,
+        data
+      })
+    })
+
     return char
-  }, [gl, tasks, camera, touch])
+  }, [bus, gl, tasks, camera, touch])
 
   return (
     <group
