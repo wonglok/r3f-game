@@ -6,7 +6,6 @@ import { HTML as HTMLAttach } from 'drei'
 // import { TorusKnot } from 'drei'
 // import './styles.css'
 
-
 export default function ({ bus, touch, ...props }) {
   // This reference will give us direct access to the mesh
   const grouper = useRef()
@@ -28,8 +27,6 @@ export default function ({ bus, touch, ...props }) {
       setShow(true)
     })
 
-    bus.dispatchEvent({ type: 'character', character: char })
-
     bus.addEventListener('pass', ({ encap }) => {
       // forward GUI
       let { type, data } = encap
@@ -49,11 +46,16 @@ export default function ({ bus, touch, ...props }) {
       ref={grouper}
     >
       <primitive object={character.out.o3d}>
-        {show ? <HTMLAttach>
-          <div className="bg-gray-300 p-3 text-black cursor-pointer select-none" onClick={character.dispatchEvent('dance')}>
-            Lok
-          </div>
-        </HTMLAttach> : <></>}
+        {show ?
+        <group position={[0, 0, 0]}>
+          <HTMLAttach
+          >
+            <div style={{ width: '80px', transform: 'translateX(-40px)' }} className=" text-center bg-blue-500 z-30 text-sm rounded-full text-white cursor-pointer select-none">
+              <div className="inline-block px-3 py-2" onClick={() => character.dispatchEvent({ type: 'dance', data: {} })}>Lok</div>
+            </div>
+          </HTMLAttach>
+        </group>
+        : <></>}
       </primitive>
     </group>
   )

@@ -484,6 +484,14 @@ export class Character extends EventDispatcher {
         this.viewSettings.cameraExtraHeight = -65.26500
         this.viewSettings.farest = 900.00000
         this.viewSettings.defaultCloseup = -56.35400
+      } else if (this.viewCameraMode === 'freecam') {
+        this.viewSettings.adjustX = 0
+        this.viewSettings.adjustY = 17.267699999999984
+        this.viewSettings.adjustZ = -1.5212000000000112
+
+        this.viewSettings.cameraExtraHeight = -2.208000000000006
+        this.viewSettings.farest = 920
+        this.viewSettings.defaultCloseup = -23.363000000000014
       }
 
       this.viewSettings.adjustX *= this.initConfig.scale
@@ -492,6 +500,8 @@ export class Character extends EventDispatcher {
       this.viewSettings.cameraExtraHeight *= this.initConfig.scale
       this.viewSettings.farest *= this.initConfig.scale
       this.viewSettings.defaultCloseup *= this.initConfig.scale
+
+      this.dispatchEvent({ type: 'reset-cam' })
     }
 
     resetCam()
@@ -503,6 +513,9 @@ export class Character extends EventDispatcher {
     if (process.env.NODE_ENV === 'development') {
       const dat = require('dat.gui')
       const gui = new dat.GUI()
+      this.addEventListener('reset-cam', () => {
+        gui.updateDisplay()
+      })
       gui.add(this.viewSettings, 'adjustX')
       gui.add(this.viewSettings, 'adjustY')
       gui.add(this.viewSettings, 'adjustZ')
