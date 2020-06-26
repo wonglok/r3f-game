@@ -83,7 +83,7 @@ class CustomWebGLCubeRenderTarget extends WebGLCubeRenderTarget {
 export class ShaderCubeChrome {
   constructor ({ renderer, loop, res = 128, color = new Color('#ffffff') }) {
     this.renderer = renderer
-    console.log(renderer)
+    // console.log(renderer)
     this.resX = res || 128
     this.renderTargetCube = new CustomWebGLCubeRenderTarget(this.resX, { format: RGBFormat, magFilter: LinearFilter, minFilter: LinearFilter })
     this.renderTargetPlane = new WebGLRenderTarget(this.resX, this.resX, { format: RGBFormat, magFilter: LinearFilter, minFilter: LinearFilter })

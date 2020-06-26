@@ -19,8 +19,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 // Object3D
 export class Character extends EventDispatcher {
-  constructor ({ renderer, loop, camera, element, scene }) {
+  constructor ({ bus, renderer, loop, camera, element, scene }) {
     super()
+    this.bus = bus
     this.scene = scene
     this.url = require('../assets/glb/swat-guy.glb')
     this.loop = loop
@@ -73,10 +74,7 @@ export class Character extends EventDispatcher {
 
       this.addEventListener('toggle-gyro', (event) => {
         this.setupGyroCam()
-        if (event.from) {
-          event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
-          event.from.dispatchEvent({ type: 'viewCamMode', data: this.viewCameraMode })
-        }
+        bus.dispatchEvent({ type: 'renderUI', data: Math.random() })
       })
 
       this.addEventListener('toggle-camcorder', (event) => {
@@ -85,11 +83,15 @@ export class Character extends EventDispatcher {
         } else if (this.viewCameraMode === 'firstperson') {
           this.viewCameraMode = 'freecam'
         }
-        if (event.from) {
-          event.from.dispatchEvent({ type: 'viewCamMode', data: this.viewCameraMode })
-          event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
-        }
+        bus.dispatchEvent({ type: 'renderUI', data: Math.random() })
       })
+  }
+  get charReady () {
+    return this._charReady
+  }
+  set charReady (v) {
+    this._charReady = v
+    this.bus.dispatchEvent({ type: 'renderUI' })
   }
   get viewCameraMode () {
     return this._viewCameraMode

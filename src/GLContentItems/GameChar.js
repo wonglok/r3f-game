@@ -1,44 +1,47 @@
 import React, { useRef, useMemo, useState } from 'react'
-import { useFrame, useThree } from 'react-three-fiber'
-import { Character } from '../Game/Character'
+// import { useFrame, useThree } from 'react-three-fiber'
 import { HTML as HTMLAttach } from 'drei'
 
 // import { TorusKnot } from 'drei'
 // import './styles.css'
 
-export default function ({ bus, touch, ...props }) {
+export default function ({ character, ...props }) {
   // This reference will give us direct access to the mesh
   const grouper = useRef()
-  let { gl, scene, camera } = useThree()
+  // let tasks = useMemo(() => [], [])
 
-  let tasks = useMemo(() => [], [])
+  // useFrame(() => {
+  //   for (let task of tasks) {
+  //     task()
+  //   }
+  // })
 
-  useFrame(() => {
-    for (let task of tasks) {
-      task()
-    }
-  })
   let [show, setShow] = useState(false)
-
-  let character = useMemo(() => {
-    let loop = task => tasks.push(task)
-    let char = new Character({ scene, renderer: gl, element: touch.current, loop, camera })
-    char.out.done.then(() => {
+  useMemo(() => {
+    character.out.done.then(() => {
       setShow(true)
     })
+  }, [character])
 
-    bus.addEventListener('pass', ({ encap }) => {
-      // forward GUI
-      let { type, data } = encap
-      char.dispatchEvent({
-        type,
-        data,
-        from: bus
-      })
-    })
+  // let character = useMemo(() => {
+  //   let loop = task => tasks.push(task)
+  //   let char = new Character({ scene, renderer: gl, element: touch.current, loop, camera })
+  //   char.out.done.then(() => {
+  //     setShow(true)
+  //   })
 
-    return char
-  }, [bus, scene, gl, tasks, camera, touch])
+  //   bus.addEventListener('pass', ({ encap }) => {
+  //     // forward GUI
+  //     let { type, data } = encap
+  //     char.dispatchEvent({
+  //       type,
+  //       data,
+  //       from: bus
+  //     })
+  //   })
+
+  //   return char
+  // }, [bus, scene, gl, tasks, camera, touch])
 
   return (
     <group
