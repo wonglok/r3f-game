@@ -75,17 +75,19 @@ export class Character extends EventDispatcher {
         this.setupGyroCam()
         if (event.from) {
           event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
+          event.from.dispatchEvent({ type: 'viewCamMode', data: this.viewCameraMode })
         }
       })
 
       this.addEventListener('toggle-camcorder', (event) => {
-        if (this._viewCameraMode === 'freecam') {
+        if (this.viewCameraMode === 'freecam') {
           this.viewCameraMode = 'firstperson'
-        } else if (this._viewCameraMode === 'firstperson') {
+        } else if (this.viewCameraMode === 'firstperson') {
           this.viewCameraMode = 'freecam'
         }
         if (event.from) {
           event.from.dispatchEvent({ type: 'viewCamMode', data: this.viewCameraMode })
+          event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
         }
       })
   }

@@ -7,7 +7,7 @@ import { EventDispatcher } from 'three'
 import { LoadingManager } from '../Reusable/index'
 function Loading () {
   let [show, setShow] = useState(false)
-  let [loaded, setLoad] = useState('0%')
+  // let [loaded, setLoad] = useState('0%')
   LoadingManager.hooks.push((v) => {
     if (v > 0) {
       setShow(true)
