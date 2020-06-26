@@ -123,7 +123,6 @@ export class Character extends EventDispatcher {
       controls.dampping = true
       let proxyLookAtTarget = new Object3D()
       proxyCam.add(proxyLookAtTarget)
-      let rotY = this.charmover.rotation.y
       this.loop(() => {
         if (!this.useGyro) {
           return
@@ -144,9 +143,7 @@ export class Character extends EventDispatcher {
 
         this.extraHeight.setFromMatrixPosition(proxyLookAtTarget.matrixWorld)
 
-        let diff = proxyCam.rotation.y - rotY
-        this.charmover.rotation.y += diff
-        rotY = proxyCam.rotation.y
+        this.charmover.rotation.y = proxyCam.rotation.y
       })
     } catch (e) {
       console.log(e)
