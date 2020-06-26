@@ -90,3 +90,5 @@ sw.*
 .vercel
 # Local Netlify folder
 .netlify
+
+build

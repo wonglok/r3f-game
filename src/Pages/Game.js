@@ -14,6 +14,7 @@ export default function () {
       setUseGyro(event.data)
     })
     evts.addEventListener('viewCamMode', (event) => {
+      console.log(event)
       setCamMode(event.data)
     })
     return evts
@@ -44,8 +45,16 @@ export default function () {
       <div ref={touch} className="absolute top-0 left-0 w-full h-full"></div>
       <div className="absolute z-10 bottom-0 left-0 pb-6 pl-6">
         <div>
-          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('toggle-gyro', {})}>
+        <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('toggle-gyro', {})}>
             <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/gyro.svg')} alt="" />
+          </div>
+          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('toggle-camcorder', {})}>
+            {
+              viewCamMode === 'freecam' ?
+              <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/touch.svg')} alt="" />
+              :
+              <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/camcorder.svg')} alt="" />
+            }
           </div>
         </div>
         <div className="">

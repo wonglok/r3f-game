@@ -28,6 +28,7 @@ export class Character extends EventDispatcher {
     this.loop = loop
     this.gltf = false
     this.camera = camera
+
     this.charReady = false
     this._viewCameraMode = 'freecam'
     this._viewCameraMode = 'behind'
@@ -70,12 +71,23 @@ export class Character extends EventDispatcher {
         this.o3d.add(gltf.scene)
       })
 
-    this.addEventListener('toggle-gyro', (event) => {
-      this.setupGyroCam()
-      if (event.from) {
-        event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
-      }
-    })
+      this.addEventListener('toggle-gyro', (event) => {
+        this.setupGyroCam()
+        if (event.from) {
+          event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
+        }
+      })
+
+      this.addEventListener('toggle-camcorder', (event) => {
+        if (this._viewCameraMode === 'freecam') {
+          this.viewCameraMode = 'firstperson'
+        } else if (this._viewCameraMode === 'firstperson') {
+          this.viewCameraMode = 'freecam'
+        }
+        if (event.from) {
+          event.from.dispatchEvent({ type: 'viewCamMode', data: this.viewCameraMode })
+        }
+      })
   }
   get viewCameraMode () {
     return this._viewCameraMode
@@ -139,6 +151,11 @@ export class Character extends EventDispatcher {
   }
 
   async setupCameraSystem () {
+    let updateO3D = (o3d) => {
+      o3d.updateMatrix()
+      o3d.updateMatrixWorld()
+      o3d.updateWorldMatrix()
+    }
     var moveForward = false
     var moveBackward = false
     var moveLeft = false
@@ -351,20 +368,27 @@ export class Character extends EventDispatcher {
       }
     })
 
-    this.charmover.position.x = this.initConfig.controlTargetPos.x
-    this.charmover.position.y = this.initConfig.controlTargetPos.y
-    this.charmover.position.z = this.initConfig.controlTargetPos.z
-    this.charmover.lookAt(this.initConfig.controlTargetLookAt)
+    // this.charmover.position.x = this.initConfig.controlTargetPos.x
+    // this.charmover.position.y = this.initConfig.controlTargetPos.y
+    // this.charmover.position.z = this.initConfig.controlTargetPos.z
+    // this.charmover.lookAt(this.initConfig.controlTargetLookAt)
+
     // this.addEventListener('reset-char-cam', resetCharCam)
     let resetCam = () => {
       vscroll.value = 0
       this.controls.reset()
 
-      if (this.charmover) {
-        this.camera.position.copy(this.charmover.position)
-        this.camera.position.y += 180 * this.initConfig.scale
-        this.camera.position.z += 300 * this.initConfig.scale
-      }
+      // if (this.charmover) {
+      //   updateO3D(camPlacer)
+      //   updateO3D(charPlacer)
+      //   camPlacerVec3.setFromMatrixPosition(camPlacer.matrixWorld)
+      //   charPlacerVec3.setFromMatrixPosition(charPlacer.matrixWorld)
+      //   this.camera.position.copy(camPlacerVec3)
+      //   this.camera.lookAt(charPlacerVec3)
+      //   // this.camera.position.z = 10
+      //   // this.camera.position.y += 13
+      //   // this.camera.position.z += 15
+      // }
 
       if (this.viewCameraMode === 'behind') {
         this.viewSettings.adjustX = 0
@@ -471,20 +495,23 @@ export class Character extends EventDispatcher {
     }
 
     resetCam()
+    this.camera.position.z = -100
+    this.camera.position.y = 28
     this.resetCam = resetCam
     // this.$watch('viewCameraMode', resetCam)
 
-    const dat = require('dat.gui')
-    const gui = new dat.GUI()
-    gui.add(this.viewSettings, 'adjustX')
-    gui.add(this.viewSettings, 'adjustY')
-    gui.add(this.viewSettings, 'adjustZ')
-    gui.add(this.viewSettings, 'cameraExtraHeight')
-    gui.add(this.viewSettings, 'farest')
-    gui.add(this.viewSettings, 'defaultCloseup')
-    let copy2clip = require('copy-to-clipboard')
-    let copy = () => {
-      copy2clip(`
+    if (process.env.NODE_ENV === 'development') {
+      const dat = require('dat.gui')
+      const gui = new dat.GUI()
+      gui.add(this.viewSettings, 'adjustX')
+      gui.add(this.viewSettings, 'adjustY')
+      gui.add(this.viewSettings, 'adjustZ')
+      gui.add(this.viewSettings, 'cameraExtraHeight')
+      gui.add(this.viewSettings, 'farest')
+      gui.add(this.viewSettings, 'defaultCloseup')
+      let copy2clip = require('copy-to-clipboard')
+      let copy = () => {
+        copy2clip(`
           this.viewSettings.adjustX = ${1 / this.initConfig.scale * this.viewSettings.adjustX}
           this.viewSettings.adjustY = ${1 / this.initConfig.scale * this.viewSettings.adjustY}
           this.viewSettings.adjustZ = ${1 / this.initConfig.scale * this.viewSettings.adjustZ}
@@ -492,16 +519,11 @@ export class Character extends EventDispatcher {
           this.viewSettings.cameraExtraHeight = ${1 / this.initConfig.scale * this.viewSettings.cameraExtraHeight}
           this.viewSettings.farest = ${1 / this.initConfig.scale * this.viewSettings.farest}
           this.viewSettings.defaultCloseup = ${1 / this.initConfig.scale * this.viewSettings.defaultCloseup}
-      `)
+        `)
+      }
+      gui.add({ copy }, 'copy')
     }
-    gui.add({ copy }, 'copy')
 
-
-    let updateO3D = (o3d) => {
-      o3d.updateMatrix()
-      o3d.updateMatrixWorld()
-      o3d.updateWorldMatrix()
-    }
     this.loop(() => {
       if (!this.charReady) { return }
       var time = performance.now()
