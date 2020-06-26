@@ -103,6 +103,7 @@ export class Character extends EventDispatcher {
   setupGyroCam () {
     try {
       let proxyCam = this.proxyCam = new PerspectiveCamera(75, 1, 0.01, 100000000000000)
+      proxyCam.rotation.y = this.charmover.rotation.y
       let element = this.element
       let resizer = () => {
         let rect = false
@@ -120,6 +121,7 @@ export class Character extends EventDispatcher {
       controls.dampping = true
       let proxyLookAtTarget = new Object3D()
       proxyCam.add(proxyLookAtTarget)
+      let rotY = this.charmover.rotation.y
       this.loop(() => {
         if (!this.useGyro) {
           return
@@ -139,9 +141,10 @@ export class Character extends EventDispatcher {
         proxyLookAtTarget.updateWorldMatrix()
 
         this.extraHeight.setFromMatrixPosition(proxyLookAtTarget.matrixWorld)
-        if (typeof proxyCam.rotation.y !== 'undefined') {
-          this.charmover.rotation.y = proxyCam.rotation.y
-        }
+
+        let diff = proxyCam.rotation.y - rotY
+        this.charmover.rotation.y += diff
+        rotY = proxyCam.rotation.y
       })
     } catch (e) {
       console.log(e)
