@@ -6,7 +6,7 @@ DefaultLoadingManager.onURL = (url, progress) => {
   let { itemsLoaded, itemsTotal } = DefaultLoadingManager.stat
   let overallProgressDetailed = itemsLoaded / itemsTotal + progress / itemsTotal
   DefaultLoadingManager.loadProgress = (overallProgressDetailed)
-  DefaultLoadingManager.hooks.forEach(e => e(DefaultLoadingManager.loadProgress))
+  // DefaultLoadingManager.hooks.forEach(e => e(DefaultLoadingManager.loadProgress))
 }
 DefaultLoadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
   DefaultLoadingManager.loadProgress = (itemsLoaded / itemsTotal)

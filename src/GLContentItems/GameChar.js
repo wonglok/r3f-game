@@ -47,15 +47,14 @@ export default function ({ bus, touch, ...props }) {
     >
       <primitive object={character.out.o3d}>
         {show ?
-        <group position={[0, 0, 0]}>
           <HTMLAttach
           >
             <div style={{ width: '80px', transform: 'translateX(-40px)' }} className=" text-center bg-blue-500 z-30 text-sm rounded-full text-white cursor-pointer select-none">
               <div className="inline-block px-3 py-2" onClick={() => character.dispatchEvent({ type: 'dance', data: {} })}>Lok</div>
             </div>
           </HTMLAttach>
-        </group>
-        : <></>}
+        : <>
+        </>}
       </primitive>
     </group>
   )

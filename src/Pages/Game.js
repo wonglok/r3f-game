@@ -3,8 +3,8 @@ import { Canvas } from 'react-three-fiber'
 // import { OrbitControls } from 'drei'
 import GL from '../GLContent'
 import { EventDispatcher } from 'three'
-import { LoadingManager } from '../Reusable/index'
 
+import { LoadingManager } from '../Reusable/index'
 function Loading () {
   let [show, setShow] = useState(false)
   let [loaded, setLoad] = useState('0%')
@@ -15,11 +15,10 @@ function Loading () {
     if (v === 1) {
       setShow(false)
     }
-    setLoad(`${(v * 100).toFixed(1)}%`)
+    // setLoad(`${(v * 100).toFixed(1)}%`)
   })
-
   return (
-    show ? <div className="p-3 bg-white rounded">{loaded}</div> : <div></div>
+    <div className={`p-3 bg-white rounded ${show ? 'block' : 'hidden'}`}>Loading...</div>
   )
 }
 
@@ -64,7 +63,7 @@ export default function () {
       <div ref={touch} className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
         <Loading></Loading>
       </div>
-      <div className="absolute z-10 bottom-0 left-0 pb-6 pl-6">
+      <div className="absolute z-10 bottom-0 left-0 pb-4 pl-4">
         <div>
         <div className={`inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border ${useGyro ? 'bg-blue-400' : 'bg-white'} text-20 text-white`} onClick={() => gui('toggle-gyro', {})}>
             <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/gyro.svg')} alt="" />
@@ -87,7 +86,7 @@ export default function () {
           </div>
         </div>
       </div>
-      <div className="absolute z-10 bottom-0 right-0 pb-6 pr-6">
+      <div className="absolute z-10 bottom-0 right-0 pb-4 pr-4">
         <div>
           <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('dance', {})}>
             <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/dance.svg')} alt="" />

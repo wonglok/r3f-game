@@ -510,7 +510,7 @@ export class Character extends EventDispatcher {
     this.resetCam = resetCam
     // this.$watch('viewCameraMode', resetCam)
 
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && window.innerWidth > 500) {
       const dat = require('dat.gui')
       const gui = new dat.GUI()
       this.addEventListener('reset-cam', () => {
@@ -1229,7 +1229,7 @@ export class Character extends EventDispatcher {
       }, to.duration * 1000)
     })
   }
-  async doStart ({ idle, to, mixer, canRestore = false, stopAll = true, fade = 0.15 }) {
+  async doStart ({ idle, to, mixer, canRestore = false, stopAll = true, fade = 0.3 }) {
     return new Promise((resolve, reject) => {
       if (to.isRunning()) {
         resolve(false)
@@ -1258,7 +1258,7 @@ export class Character extends EventDispatcher {
   }
   async doEnd ({ idle, to, mixer }) {
     return new Promise((resolve) => {
-      let fade = 0.15
+      let fade = 0.3
 
       let idx = this.activeLog.indexOf(to)
       if (idx !== -1) {
