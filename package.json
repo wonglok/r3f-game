@@ -7,6 +7,8 @@
   "dependencies": {
     "@tweenjs/tween.js": "^18.6.0",
     "autoprefixer": "^9.8.4",
+    "copy-to-clipboard": "^3.3.1",
+    "dat.gui": "^0.7.7",
     "drei": "^0.0.60",
     "localforage": "^1.7.4",
     "postcss-cli": "^7.1.1",

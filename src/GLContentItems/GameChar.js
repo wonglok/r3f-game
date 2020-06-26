@@ -10,7 +10,7 @@ import { HTML as HTMLAttach } from 'drei'
 export default function ({ bus, touch, ...props }) {
   // This reference will give us direct access to the mesh
   const grouper = useRef()
-  let { gl, camera } = useThree()
+  let { gl, scene, camera } = useThree()
 
   let tasks = useMemo(() => [], [])
 
@@ -23,22 +23,25 @@ export default function ({ bus, touch, ...props }) {
 
   let character = useMemo(() => {
     let loop = task => tasks.push(task)
-    let char = new Character({ renderer: gl, element: touch.current, loop, camera })
+    let char = new Character({ scene, renderer: gl, element: touch.current, loop, camera })
     char.out.done.then(() => {
       setShow(true)
     })
+
+    bus.dispatchEvent({ type: 'character', character: char })
 
     bus.addEventListener('pass', ({ encap }) => {
       // forward GUI
       let { type, data } = encap
       char.dispatchEvent({
         type,
-        data
+        data,
+        from: bus
       })
     })
 
     return char
-  }, [bus, gl, tasks, camera, touch])
+  }, [bus, scene, gl, tasks, camera, touch])
 
   return (
     <group

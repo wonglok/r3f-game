@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useMemo } from 'react'
+import React, { Suspense, useRef, useMemo, useState } from 'react'
 import { Canvas } from 'react-three-fiber'
 // import { OrbitControls } from 'drei'
 import GL from '../GLContent'
@@ -6,14 +6,22 @@ import { EventDispatcher } from 'three'
 
 export default function () {
   let touch = useRef()
+  let [useGyro, setUseGyro] = useState(false)
+  let [viewCamMode, setCamMode] = useState(false)
   let bus = useMemo(() => {
     let evts = new EventDispatcher()
+    evts.addEventListener('useGyro', (event) => {
+      setUseGyro(event.data)
+    })
+    evts.addEventListener('viewCamMode', (event) => {
+      setCamMode(event.data)
+    })
     return evts
   }, [])
+
   let gui = useMemo(() => {
     return (type, data) => {
-      bus.dispatchEvent({ type: 'pass', encap: { type, data } })
-      // console.log('gui', { type, data })
+      bus.dispatchEvent({ type: 'pass', encap: { type, data, from: bus } })
     }
   }, [bus])
 
@@ -35,32 +43,43 @@ export default function () {
       </Canvas>
       <div ref={touch} className="absolute top-0 left-0 w-full h-full"></div>
       <div className="absolute z-10 bottom-0 left-0 pb-6 pl-6">
-      <div className="flex justify-center">
-        <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-2 my-2 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-forward', true)} onTouchEnd={() => gui('go-forward', false)} onMouseDown={() => gui('go-forward', true)} onMouseUp={() => gui('go-forward', false)}>
-            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/up.svg')} alt="Go Forward" />
+        <div>
+          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('toggle-gyro', {})}>
+            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/gyro.svg')} alt="" />
           </div>
         </div>
-        <div>
-          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-2 my-2 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-backward', true)} onTouchEnd={() => gui('go-backward', false)} onMouseDown={() => gui('go-backward', true)} onMouseUp={() => gui('go-backward', false)}>
+        <div className="">
+          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-forward', true)} onTouchEnd={() => gui('go-forward', false)} onMouseDown={() => gui('go-forward', true)} onMouseUp={() => gui('go-forward', false)}>
+            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/up.svg')} alt="Go Forward" />
+          </div>
+          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-backward', true)} onTouchEnd={() => gui('go-backward', false)} onMouseDown={() => gui('go-backward', true)} onMouseUp={() => gui('go-backward', false)}>
             <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/down.svg')} alt="Go Forward" />
           </div>
         </div>
       </div>
       <div className="absolute z-10 bottom-0 right-0 pb-6 pr-6">
         <div>
-          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-2 my-2 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('dance', {})}>
+          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('dance', {})}>
             <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/dance.svg')} alt="" />
           </div>
-          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-2 my-2 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('toggle-fight', {})}>
+          <div className="inline-block cursor-pointer rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onClick={() => gui('toggle-fight', {})}>
             <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/gamepad.svg')} alt="" />
           </div>
         </div>
-        <div>
-          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-2 my-2 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-left', true)} onTouchEnd={() => gui('go-left', false)} onMouseDown={() => gui('go-left', true)} onMouseUp={() => gui('go-left', false)}>
-            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/left.svg')} alt="Go Forward" />
+        { useGyro || viewCamMode === 'freecam' ? <div></div> : <div>
+          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('turn-left', true)} onTouchEnd={() => gui('turn-left', false)} onMouseDown={() => gui('turn-left', true)} onMouseUp={() => gui('turn-left', false)}>
+            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/turn-left.svg')} alt="Turn Left" />
           </div>
-          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-2 my-2 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-right', true)} onTouchEnd={() => gui('go-right', false)} onMouseDown={() => gui('go-right', true)} onMouseUp={() => gui('go-right', false)}>
-            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/right.svg')} alt="Go Forward" />
+          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('turn-right', true)} onTouchEnd={() => gui('turn-right', false)} onMouseDown={() => gui('turn-right', true)} onMouseUp={() => gui('turn-right', false)}>
+            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/turn-right.svg')} alt="Turn Right" />
+          </div>
+        </div> }
+        <div>
+          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-left', true)} onTouchEnd={() => gui('go-left', false)} onMouseDown={() => gui('go-left', true)} onMouseUp={() => gui('go-left', false)}>
+            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/left.svg')} alt="Go Left" />
+          </div>
+          <div className="inline-block rounded-full touch-action-manipulation text-center select-none p-3 mx-1 my-1 border-gray-100 border bg-white text-20 text-white" onTouchStart={() => gui('go-right', true)} onTouchEnd={() => gui('go-right', false)} onMouseDown={() => gui('go-right', true)} onMouseUp={() => gui('go-right', false)}>
+            <img className=" scale-75 transform select-none  pointer-events-none" src={require('./img/right.svg')} alt="Go Right" />
           </div>
         </div>
       </div>

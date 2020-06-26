@@ -1,5 +1,5 @@
 import { ShaderCubeChrome, loadGLTF, LoadingManager } from "../Reusable"
-import { Object3D, Color, EventDispatcher, Vector3 } from "three"
+import { Object3D, Color, EventDispatcher, Vector3, PerspectiveCamera } from "three"
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 
 import { Mixer } from "./Mixer"
@@ -19,16 +19,19 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 // Object3D
 export class Character extends EventDispatcher {
-  constructor ({ renderer, loop, camera, element }) {
+  constructor ({ renderer, loop, camera, element, scene }) {
     super()
+    this.scene = scene
     this.url = require('../assets/glb/swat-guy.glb')
-
+    this.loop = loop
     this.element = element
     this.loop = loop
     this.gltf = false
     this.camera = camera
     this.charReady = false
     this._viewCameraMode = 'freecam'
+    this._viewCameraMode = 'behind'
+    this._viewCameraMode = 'firstperson'
     this.viewSettings = {}
     this.initConfig = {
       scale: 0.1,
@@ -38,8 +41,11 @@ export class Character extends EventDispatcher {
     }
 
     this.extraHeight = new Vector3()
+
     this.charmover = new Object3D()
-    this.controlTarget = new Object3D()
+
+    // this.controlTarget = new Object3D()
+
     this.o3d = new Object3D()
     this.o3d.rotation.x = -Math.PI * 0.5
 
@@ -50,6 +56,7 @@ export class Character extends EventDispatcher {
     this.chroma = new ShaderCubeChrome({ renderer, loop, res: 32, color: new Color('#ffffff') })
     this.moves = new Moves()
     this.activeLog = []
+    this.useGyro = false
 
     this.setupCameraSystem()
 
@@ -62,6 +69,13 @@ export class Character extends EventDispatcher {
         await this.setupAnimationSystem({ mixer: this.mixer })
         this.o3d.add(gltf.scene)
       })
+
+    this.addEventListener('toggle-gyro', (event) => {
+      this.setupGyroCam()
+      if (event.from) {
+        event.from.dispatchEvent({ type: 'useGyro', data: this.useGyro })
+      }
+    })
   }
   get viewCameraMode () {
     return this._viewCameraMode
@@ -69,7 +83,61 @@ export class Character extends EventDispatcher {
   set viewCameraMode (v) {
     this._viewCameraMode = v
     this.resetCam()
+    this.dispatchEvent({ type: 'viewCamMode', data: v })
   }
+
+  setupGyroCam () {
+    try {
+      let proxyCam = this.proxyCam = new PerspectiveCamera(75, 1, 0.01, 100000000000000)
+      let element = this.element
+      let resizer = () => {
+        let rect = false
+        if (element) {
+          rect = element.getBoundingClientRect()
+        }
+        proxyCam.aspect = rect.width / rect.height
+        proxyCam.updateProjectionMatrix()
+      }
+      resizer()
+      window.addEventListener('resize', resizer)
+
+      let DeviceOrientationControls = require('three/examples/jsm/controls/DeviceOrientationControls').DeviceOrientationControls
+      let controls = new DeviceOrientationControls(proxyCam, this.element)
+      controls.dampping = true
+      let proxyLookAtTarget = new Object3D()
+      proxyCam.add(proxyLookAtTarget)
+      this.loop(() => {
+        if (!this.useGyro) {
+          return
+        }
+
+        controls.enabled = true
+        controls.update()
+
+        proxyLookAtTarget.position.z = -8
+
+        proxyCam.updateMatrix()
+        proxyCam.updateMatrixWorld()
+        proxyCam.updateWorldMatrix()
+
+        proxyLookAtTarget.updateMatrix()
+        proxyLookAtTarget.updateMatrixWorld()
+        proxyLookAtTarget.updateWorldMatrix()
+
+        this.extraHeight.setFromMatrixPosition(proxyLookAtTarget.matrixWorld)
+        if (typeof proxyCam.rotation.y !== 'undefined') {
+          this.charmover.rotation.y = proxyCam.rotation.y
+        }
+      })
+    } catch (e) {
+      console.log(e)
+    }
+    this.useGyro = !this.useGyro
+    if (this.useGyro) {
+      this.viewCameraMode = 'firstperson'
+    }
+  }
+
   async setupCameraSystem () {
     var moveForward = false
     var moveBackward = false
@@ -86,15 +154,16 @@ export class Character extends EventDispatcher {
     // var direction = new Vector3()
 
     let camPlacer = new Object3D()
+    camPlacer.position.z = 10
     let camPlacerVec3 = new Vector3()
 
     let charPlacer = new Object3D()
     let charPlacerVec3 = new Vector3()
-    charPlacer.position.y = 0
-    charPlacer.position.z = 0
+    // charPlacer.position.y = 0
+    // charPlacer.position.z = 0
 
-    this.controlTarget.add(camPlacer)
-    this.controlTarget.add(charPlacer)
+    this.charmover.add(camPlacer)
+    this.charmover.add(charPlacer)
 
     // let vscroll = makeScroller({ base: this.lookup('base'), mounter: this.$refs['domlayer'], limit: { direction: 'vertical', canRun: true, ny: 0, y: 1 }, onMove: () => {} })
     let vscroll = {
@@ -282,10 +351,10 @@ export class Character extends EventDispatcher {
       }
     })
 
-    this.controlTarget.position.x = this.initConfig.controlTargetPos.x
-    this.controlTarget.position.y = this.initConfig.controlTargetPos.y
-    this.controlTarget.position.z = this.initConfig.controlTargetPos.z
-    this.controlTarget.lookAt(this.initConfig.controlTargetLookAt)
+    this.charmover.position.x = this.initConfig.controlTargetPos.x
+    this.charmover.position.y = this.initConfig.controlTargetPos.y
+    this.charmover.position.z = this.initConfig.controlTargetPos.z
+    this.charmover.lookAt(this.initConfig.controlTargetLookAt)
     // this.addEventListener('reset-char-cam', resetCharCam)
     let resetCam = () => {
       vscroll.value = 0
@@ -366,17 +435,17 @@ export class Character extends EventDispatcher {
         this.viewSettings.farest = 900
       } else if (this.viewCameraMode === 'firstperson') {
         this.viewSettings.adjustX = 0
-        this.viewSettings.adjustY = 177.2677
-        this.viewSettings.adjustZ = 200.2212
+        this.viewSettings.adjustY = 17.267699999999984
+        this.viewSettings.adjustZ = -1.5212000000000112
 
-        this.viewSettings.cameraExtraHeight = 21.792
-        this.viewSettings.defaultCloseup = 263.363
-        this.viewSettings.farest = 900
+        this.viewSettings.cameraExtraHeight = -2.208000000000006
+        this.viewSettings.farest = 920
+        this.viewSettings.defaultCloseup = -23.363000000000014
       } else if (this.viewCameraMode === 'firstback') {
 
         this.viewSettings.adjustX = 0.00000
         this.viewSettings.adjustY = 85.03870
-        this.viewSettings.adjustZ = 131.77540
+        this.viewSettings.adjustZ = -131.77540
 
         this.viewSettings.cameraExtraHeight = 0.00000
         this.viewSettings.farest = 900.00000
@@ -405,6 +474,29 @@ export class Character extends EventDispatcher {
     this.resetCam = resetCam
     // this.$watch('viewCameraMode', resetCam)
 
+    const dat = require('dat.gui')
+    const gui = new dat.GUI()
+    gui.add(this.viewSettings, 'adjustX')
+    gui.add(this.viewSettings, 'adjustY')
+    gui.add(this.viewSettings, 'adjustZ')
+    gui.add(this.viewSettings, 'cameraExtraHeight')
+    gui.add(this.viewSettings, 'farest')
+    gui.add(this.viewSettings, 'defaultCloseup')
+    let copy2clip = require('copy-to-clipboard')
+    let copy = () => {
+      copy2clip(`
+          this.viewSettings.adjustX = ${1 / this.initConfig.scale * this.viewSettings.adjustX}
+          this.viewSettings.adjustY = ${1 / this.initConfig.scale * this.viewSettings.adjustY}
+          this.viewSettings.adjustZ = ${1 / this.initConfig.scale * this.viewSettings.adjustZ}
+
+          this.viewSettings.cameraExtraHeight = ${1 / this.initConfig.scale * this.viewSettings.cameraExtraHeight}
+          this.viewSettings.farest = ${1 / this.initConfig.scale * this.viewSettings.farest}
+          this.viewSettings.defaultCloseup = ${1 / this.initConfig.scale * this.viewSettings.defaultCloseup}
+      `)
+    }
+    gui.add({ copy }, 'copy')
+
+
     let updateO3D = (o3d) => {
       o3d.updateMatrix()
       o3d.updateMatrixWorld()
@@ -420,41 +512,44 @@ export class Character extends EventDispatcher {
 
       // update control target
       if (turnLeft) {
-        this.controlTarget.rotation.y += delta * 1.75
+        this.charmover.rotation.y += delta * 1.75
       }
       if (turnRight) {
-        this.controlTarget.rotation.y -= delta * 1.75
+        this.charmover.rotation.y -= delta * 1.75
       }
       if (!this.isTakingComplexAction) {
         if (moveForward) {
-          this.controlTarget.translateZ(-delta * -55 * this.initConfig.scale)
+          this.charmover.translateZ(-delta * -55 * this.initConfig.scale)
         }
         if (moveBackward) {
-          this.controlTarget.translateZ(delta * -55 * this.initConfig.scale)
+          this.charmover.translateZ(delta * -55 * this.initConfig.scale)
         }
         if (moveLeft) {
-          this.controlTarget.translateX(-delta * -55 * this.initConfig.scale)
+          this.charmover.translateX(-delta * -55 * this.initConfig.scale)
         }
         if (moveRight) {
-          this.controlTarget.translateX(delta * -55 * this.initConfig.scale)
+          this.charmover.translateX(delta * -55 * this.initConfig.scale)
         }
       }
 
-      updateO3D(this.controlTarget)
-      // this.controlTarget.updateMatrix()
-      // this.controlTarget.updateMatrixWorld()
-      // this.controlTarget.updateWorldMatrix()
+      // updateO3D(this.controlTarget)
+      updateO3D(camPlacer)
+      updateO3D(charPlacer)
+      // this.charmover.updateMatrix()
+      // this.charmover.updateMatrixWorld()
+      // this.charmover.updateWorldMatrix()
 
       // sync control target to character
+      camPlacerVec3.setFromMatrixPosition(camPlacer.matrixWorld)
       charPlacerVec3.setFromMatrixPosition(charPlacer.matrixWorld)
 
-      this.charmover.rotation.x = this.controlTarget.rotation.x
-      this.charmover.rotation.y = this.controlTarget.rotation.y
-      this.charmover.rotation.z = this.controlTarget.rotation.z
+      // this.charmover.rotation.x = this.charmover.rotation.x
+      // this.charmover.rotation.y = this.charmover.rotation.y
+      // this.charmover.rotation.z = this.charmover.rotation.z
 
-      this.charmover.position.x = charPlacerVec3.x
-      this.charmover.position.y = charPlacerVec3.y
-      this.charmover.position.z = charPlacerVec3.z
+      // this.charmover.position.x = charPlacerVec3.x
+      // this.charmover.position.y = charPlacerVec3.y
+      // this.charmover.position.z = charPlacerVec3.z
 
       // can calculate camera
       let config = this.viewSettings
@@ -594,10 +689,15 @@ export class Character extends EventDispatcher {
         targetLookAt.y = guyBodyPos.y - config.cameraExtraHeight
         targetLookAt.z = guyBodyPos.z
       } else if (this.viewCameraMode === 'firstperson') {
-        // make use of position
+        // // make use of position
         targetCamPos.x = camPlacerVec3.x
         targetCamPos.y = camPlacerVec3.y + config.cameraExtraHeight
         targetCamPos.z = camPlacerVec3.z
+
+        // make use of position
+        // targetCamPos.x = centerPosition.x
+        // targetCamPos.y = centerPosition.y + config.cameraExtraHeight
+        // targetCamPos.z = centerPosition.z
 
         targetLookAt.x = lookAtVec3.x
         targetLookAt.y = lookAtVec3.y - config.cameraExtraHeight
@@ -1182,7 +1282,7 @@ export class Character extends EventDispatcher {
         let guyHeadCam = new Object3D()
         guyHeadCam.position.x = 0
         guyHeadCam.position.y = 0
-        guyHeadCam.position.z = -1
+        guyHeadCam.position.z = -10
         item.add(guyHeadCam)
         this.goSet('guyHeadCam', guyHeadCam)
       }

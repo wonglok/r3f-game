@@ -20,7 +20,7 @@ export default function App () {
         <PageRoutes></PageRoutes>
       </Suspense>
 
-      <div className="absolute top-0 left-0">
+      <div className=" select-none touch-action-manipulation absolute top-0 left-0">
         <Link to="/">Home</Link>
         <Link to="/p2/waha">waha</Link>
       </div>
