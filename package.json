@@ -19,7 +19,7 @@
     "react-three-fiber": "4.2.10",
     "requestidlecallback": "^0.3.0",
     "tailwindcss": "^1.4.6",
-    "three": "^0.116.1"
+    "three": "^0.137.0"
   },
   "devDependencies": {},
   "scripts": {
